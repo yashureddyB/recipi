@@ -14,25 +14,44 @@ const RecipeFinder = ({ localRecipes = [] }) => {
     setRecipes([]);
 
     try {
+      // 1️⃣ Fetch from your backend
+      const backendRes = await fetch("http://localhost:8080/api/recipes");
+      const backendData = await backendRes.json();
+
+      // Convert backend DTO → UI format
+      const backendRecipes = backendData.map((item) => ({
+        idMeal: item.id,
+        strMeal: item.name,
+        strCategory: item.category,
+        strArea: item.area,
+        strMealThumb: item.imageUrl,
+        strInstructions: item.instructions,
+        strYoutube: item.youtubeUrl,
+        ingredients: item.ingredients.split(",").map((i) => i.trim()),
+      }));
+
+      // Filter backend recipes by search text
+      const filteredBackend = backendRecipes.filter((r) =>
+        r.strMeal.toLowerCase().includes(query.toLowerCase())
+      );
+
+      // 2️⃣ Fetch from external API
       const response = await fetch(
         `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`
       );
       const data = await response.json();
       const apiRecipes = data.meals && Array.isArray(data.meals) ? data.meals : [];
-      
 
-      const userRecipes = localRecipes.filter((r) =>
-        r.strMeal.toLowerCase().includes(query.toLowerCase())
-      );
-
-      const combined = [...userRecipes, ...apiRecipes];
+      // 3️⃣ Combine all recipes
+      const combined = [...filteredBackend, ...localRecipes, ...apiRecipes];
 
       if (combined.length > 0) {
         setRecipes(combined);
       } else {
         setError("No recipes found. Try another name.");
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Something went wrong while fetching recipes.");
     }
 
@@ -41,20 +60,21 @@ const RecipeFinder = ({ localRecipes = [] }) => {
 
   const getIngredients = (meal) => {
     if (meal.ingredients) return meal.ingredients;
+
     const ingredients = [];
     for (let i = 1; i <= 20; i++) {
-      const ingredient = meal[`strIngredient${i}`];
+      const ing = meal[`strIngredient${i}`];
       const measure = meal[`strMeasure${i}`];
-      if (ingredient && ingredient.trim()) {
-        ingredients.push(`${ingredient} - ${measure || ""}`);
+      if (ing && ing.trim()) {
+        ingredients.push(`${ing} - ${measure || ""}`);
       }
     }
     return ingredients;
   };
-  
 
   return (
     <div>
+      {/* UI kept same */}
       <h1 className="text-3xl font-extrabold text-center mb-6 text-green-700">
         🥗 Recipe Finder
       </h1>

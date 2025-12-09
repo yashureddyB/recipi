@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const AddRecipeForm = ({ onAddRecipe }) => {
+const AddRecipeForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -11,42 +11,63 @@ const AddRecipeForm = ({ onAddRecipe }) => {
     youtube: "",
   });
 
+  const [message, setMessage] = useState("");
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate required fields
     if (!formData.name || !formData.ingredients || !formData.instructions) {
       alert("Please fill in all required fields!");
       return;
     }
 
-    const newRecipe = {
-      idMeal: Date.now(),
-      strMeal: formData.name,
-      strCategory: formData.category,
-      strArea: formData.area,
-      strMealThumb: formData.image || "https://via.placeholder.com/300",
-      strInstructions: formData.instructions,
-      strYoutube: formData.youtube,
-      ingredients: formData.ingredients.split(",").map((ing) => ing.trim()),
+    // Prepare data for backend
+    const recipeData = {
+      name: formData.name,
+      category: formData.category,
+      area: formData.area,
+      ingredients: formData.ingredients, // backend expects comma-separated string
+      instructions: formData.instructions,
+      imageUrl: formData.image,
+      youtubeUrl: formData.youtube,
     };
 
-    onAddRecipe(newRecipe);
-    setFormData({
-      name: "",
-      category: "",
-      area: "",
-      ingredients: "",
-      instructions: "",
-      image: "",
-      youtube: "",
-    });
+    try {
+      const response = await fetch("http://localhost:8080/api/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(recipeData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add recipe");
+      }
+
+      const result = await response.json();
+      setMessage(`✅ Recipe created successfully! ID: ${result.id}`);
+
+      // Reset form
+      setFormData({
+        name: "",
+        category: "",
+        area: "",
+        ingredients: "",
+        instructions: "",
+        image: "",
+        youtube: "",
+      });
+    } catch (error) {
+      setMessage(`❌ Error: ${error.message}`);
+    }
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-md max-w-xl mx-auto mb-10 border border-gray-200">
+    <div className="bg-white p-6 rounded-2xl shadow-md max-w-xl mx-auto mb-10 border border-gray-200 px-8 py-20">
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
         🥗 Add Your Recipe
       </h2>
@@ -123,6 +144,10 @@ const AddRecipeForm = ({ onAddRecipe }) => {
           ➕ Add Recipe
         </button>
       </form>
+
+      {message && (
+        <p className="mt-4 text-center font-medium text-gray-700">{message}</p>
+      )}
     </div>
   );
 };

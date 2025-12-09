@@ -2,22 +2,21 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),         // React support
-    tailwindcss(),   // Tailwind integration
+    react(),
+    tailwindcss(),
   ],
-  base: '/recipi/',   // 👈 Must match your GitHub repository name exactly
+  base: '/recipi/',   // MUST match your GitHub repo name
   server: {
-    port: 5173,       // Local development port
-    open: true,       // Automatically opens in browser
+    port: 5173,
+    open: true,
   },
   build: {
-    outDir: 'dist',   // Production build output folder
-    sourcemap: true,  // Helpful for debugging (optional)
+    outDir: 'dist',
+    sourcemap: true,
   },
   preview: {
-    port: 4173,       // Optional: Preview build port
+    port: 4173,
   },
 })

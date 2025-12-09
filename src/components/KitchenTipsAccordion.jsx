@@ -16,7 +16,7 @@ const KitchenTipsAccordion = () => {
                    shadow-lg flex justify-between items-center
                    hover:opacity-90 transition"
       >
-        <span>🍳 Kitchen Tips</span>
+        <span> Kitchen Tips</span>
         <span className="text-2xl">{isOpen ? "⌃" : "⌄"}</span>
       </button>
 
